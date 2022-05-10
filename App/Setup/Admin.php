@@ -5,7 +5,7 @@
  * @license GPL-2.0+
  */
 
-namespace Mgn\Wpblock_copy\App\Setup\Admin;
+namespace Mgn\Wpblock_copy\App\Setup;
 
 class OptionPage{
 

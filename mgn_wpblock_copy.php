@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin name: ブロック構造をコピー
+ * Plugin name: mgn ブロックコピーボタン
  * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
  * Version: 0.0.2
  * Tested up to: 5.9
@@ -10,9 +10,9 @@
  * Author URI: https://m-g-n.me/
  * License: GPL2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: mgn-wpblock_copy
+ * Text Domain: mgn_wpblock_copy
  * 
- * @package mgn-wpblock_copy
+ * @package mgn_wpblock_copy
  * @author mgn
  * @license GPL-2.0+
  */
@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'MGN_WPBLOCK_COPY_URL', untrailingslashit( plugins_url( '', __FILE__ ) ) . '/' );  //このプラグインのURL.
 define( 'MGN_WPBLOCK_COPY_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/' ); //このプラグインのパス.
 define( 'MGN_WPBLOCK_COPY_BASENAME', plugin_basename( __FILE__ ) ); //このプラグインのベースネーム.
-define( 'MGN_WPBLOCK_COPY_TEXTDOMAIN', 'ruijinen-skin-r002-lp-a' ); //テキストドメイン名.
+define( 'MGN_WPBLOCK_COPY_TEXTDOMAIN', 'mgn_wpblock_copy' ); //テキストドメイン名.
 
 /**
  * include files.
@@ -59,7 +59,7 @@ class Bootstrap {
 	public function bootstrap() {
 		new App\Setup\AutoUpdate(); //自動更新チェック
 		new App\Setup\Assets();
-		new App\Setup\view_button();
+		$this->view_button();
 	}
 
 	/**
@@ -87,4 +87,4 @@ class Bootstrap {
 	}
 }
 
-new Mgn\Wpblock_copy\Bootstrap();
+new Bootstrap();

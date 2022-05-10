@@ -30,7 +30,7 @@ class Assets {
 			MGN_WPBLOCK_COPY_BASENAME.'-script',
 			MGN_WPBLOCK_COPY_URL . '/dist/js/script.js',
 			array(),
-			filemtime( MPCB_PLUGIN_PATH . '/dist/js/script.js' ),
+			filemtime( MGN_WPBLOCK_COPY_PATH . '/dist/js/script.js' ),
 			true
 		);
 	}
