@@ -1,56 +1,90 @@
 <?php
 /**
- * Plugin name: mgn ページコピーボタン
- * Description: デモサイト用にコンテンツコピーボタンを設置します。
- * Version: 0.0.1
- *
- * @package mgn-page-copy-button
+ * Plugin name: ブロック構造をコピー
+ * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
+ * Version: 0.0.2
+ * Tested up to: 5.9
+ * Requires at least: 5.9
+ * Requires PHP: 5.6
+ * Author: mgn Inc.,
+ * Author URI: https://m-g-n.me/
+ * License: GPL2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: mgn-wpblock_copy
+ * 
+ * @package mgn-wpblock_copy
  * @author mgn
  * @license GPL-2.0+
  */
 
-/**
- * 定数を宣言
- */
-define( 'MPCB_PLUGIN_URL', plugins_url( '', __FILE__ ) ); // このプラグインのURL
-define( 'MPCB_PLUGIN_PATH', plugin_dir_path( __FILE__ ) ); // このプラグインのパス
+namespace Mgn\Wpblock_copy;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
-add_action( 'wp_enqueue_scripts', 'mpcb_enqueue_style_script' );
 /**
- * 外部JS・CSSの読み込み
+ * declaration constant.
  */
-function mpcb_enqueue_style_script() {
-	if ( is_page() && ! is_home() ) {
-		wp_enqueue_style(
-			'mpcb-style',
-			MPCB_PLUGIN_URL . '/src/css/mpcb_style.css',
-			array(),
-			filemtime( MPCB_PLUGIN_PATH . '/src/css/mpcb_style.css' )
-		);
-		wp_enqueue_script(
-			'mpcb-script',
-			MPCB_PLUGIN_URL . '/src/js/mpcb_script.js',
-			array(),
-			filemtime( MPCB_PLUGIN_PATH . '/src/js/mpcb_script.js' ),
-			true
+define( 'MGN_WPBLOCK_COPY_URL', untrailingslashit( plugins_url( '', __FILE__ ) ) . '/' );  //このプラグインのURL.
+define( 'MGN_WPBLOCK_COPY_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/' ); //このプラグインのパス.
+define( 'MGN_WPBLOCK_COPY_BASENAME', plugin_basename( __FILE__ ) ); //このプラグインのベースネーム.
+define( 'MGN_WPBLOCK_COPY_TEXTDOMAIN', 'ruijinen-skin-r002-lp-a' ); //テキストドメイン名.
+
+/**
+ * include files.
+ */
+require_once(MGN_WPBLOCK_COPY_PATH . 'vendor/autoload.php'); //アップデート用composer.
+
+//各処理用のクラスを読み込む
+foreach (glob(MGN_WPBLOCK_COPY_PATH.'App/**/*.php') as $filename) {
+	require_once $filename;
+}
+
+/**
+ * 初期設定.
+ */
+class Bootstrap {
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		add_action( 'plugins_loaded', [ $this, 'bootstrap' ] );
+		add_action( 'init', [ $this, 'load_textdomain' ] );
+	}
+
+	/**
+	 * Bootstrap.
+	 */
+	public function bootstrap() {
+		new App\Setup\AutoUpdate(); //自動更新チェック
+		new App\Setup\Assets();
+		new App\Setup\view_button();
+	}
+
+	/**
+	 * Load Textdomain.
+	 */
+	public function load_textdomain() {
+		new App\Setup\TextDomain();
+	}
+
+	public function view_button(){
+		add_action(
+			'wp_footer',
+			function(){
+				if ( is_page() && ! is_home() ) {
+					global $post;
+					$contents = $post->post_content;
+					?>
+					<script>
+						const copyContents = `<?php echo $contents; ?>`;
+					</script>
+					<?php
+				}
+			}
 		);
 	}
 }
 
-
-add_action( 'wp_footer', 'add_btn_copy' );
-/**
- * コピーボタンの設置 / コピー内容を取得
- */
-function add_btn_copy() {
-	if ( is_page() && ! is_home() ) {
-		global $post;
-		$contents = $post->post_content;
-		?>
-	<script>
-		const copyContents = `<?php echo $contents; ?>`;
-	</script>
-		<?php
-	}
-}
+new Mgn\Wpblock_copy\Bootstrap();
