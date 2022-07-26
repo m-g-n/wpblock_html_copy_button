@@ -2,7 +2,7 @@
 /**
  * Plugin name: mgn ブロックコピーボタン
  * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
- * Version: 0.0.2
+ * Version: 0.0.4
  * Tested up to: 5.9
  * Requires at least: 5.9
  * Requires PHP: 5.6
@@ -58,7 +58,8 @@ class Bootstrap {
 	 * Bootstrap.
 	 */
 	public function bootstrap() {
-		new App\Setup\AutoUpdate(); //自動更新チェック
+		new App\Setup\AutoUpdate(); //自動更新チェック.
+		new App\Setup\OptionPage(); //オプションページ.
 	}
 
 	/**
