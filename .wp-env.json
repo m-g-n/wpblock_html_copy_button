@@ -1,0 +1,22 @@
+{
+  "core": "https://ja.wordpress.org/latest-ja.zip",
+  "plugins": [
+    ".",
+    "https://downloads.wordpress.org/plugin/query-monitor.zip",
+    "https://downloads.wordpress.org/plugin/wordpress-beta-tester.zip",
+    "https://downloads.wordpress.org/plugin/duplicate-post.zip"
+  ],
+	"port": 1071,
+  "env": {
+    "tests": {
+      "port": 1072
+    }
+  },
+  "config": {
+    "WP_DEBUG": true
+  },
+  "mappings": {
+    ".export": "./.export",
+    "php.ini": "./.export/php.ini"
+  }
+}
