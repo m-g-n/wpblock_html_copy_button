@@ -10,6 +10,9 @@
 - composer install でパッケージをインストール
 
 # 変更履歴
+## 0.0.5
+- Nodeパッケージのアップグレード
+- マージせずにcloseした場合はGitHub Actionsをスキップするように変更
 ## 0.0.4
 - wp-env環境の追加
 
