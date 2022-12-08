@@ -2,7 +2,7 @@
 /**
  * Plugin name: mgn ブロックコピーボタン
  * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
- * Version: 0.0.5
+ * Version: 0.0.6
  * Tested up to: 5.9
  * Requires at least: 5.9
  * Requires PHP: 5.6
@@ -26,6 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * declaration constant.
  */
+define( 'MGN_WPBLOCK_COPY_KEY', 'MGN_WPBLOCK_COPY' );  //このプラグインのURL.
 define( 'MGN_WPBLOCK_COPY_URL', untrailingslashit( plugins_url( '', __FILE__ ) ) . '/' );  //このプラグインのURL.
 define( 'MGN_WPBLOCK_COPY_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/' ); //このプラグインのパス.
 define( 'MGN_WPBLOCK_COPY_BASENAME', plugin_basename( __FILE__ ) ); //このプラグインのベースネーム.
@@ -59,7 +60,7 @@ class Bootstrap {
 	 */
 	public function bootstrap() {
 		new App\Setup\AutoUpdate(); //自動更新チェック.
-		new App\Setup\OptionPage(); //オプションページ.
+		new App\Setup\InPluginUpdateMessage(); //更新アラートメッセージに追加でメッセージを表示
 	}
 
 	/**
