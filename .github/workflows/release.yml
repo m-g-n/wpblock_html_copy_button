@@ -13,7 +13,7 @@ jobs:
     #nodeのバージョン設定 参考 https://docs.github.com/ja/free-pro-team@latest/actions/guides/building-and-testing-nodejs
     strategy:
       matrix:
-        node-version: [14.x]
+        node-version: [18.x]
 
     steps:
       - name: Checkout code
@@ -33,9 +33,9 @@ jobs:
 
       #yarnでのscriptの実施
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '18'
       - name: Install Dependencies
         run: yarn install --prefer-offline
       - name: yarn build
