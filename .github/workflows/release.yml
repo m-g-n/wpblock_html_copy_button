@@ -53,10 +53,16 @@ jobs:
           RELEASE_TITLE: ${{ github.event.pull_request.title }}
           RELEASE_BODY: ${{ github.event.pull_request.body }}
         run: |
-          gh release create "$RELEASE_TITLE" ./mgn_wpblock_copy.zip \
+          # PRタイトルをタグ名に使うため、バージョン形式以外は拒否する
+          if ! printf '%s' "$RELEASE_TITLE" | grep -Eq '^v?[0-9]+(\.[0-9]+)*$'; then
+            echo "::error::PRタイトルがバージョン形式ではありません: $RELEASE_TITLE"
+            exit 1
+          fi
+          gh release create \
             --target "$GITHUB_SHA" \
             --title "$RELEASE_TITLE" \
-            --notes "$RELEASE_BODY"
+            --notes "$RELEASE_BODY" \
+            -- "$RELEASE_TITLE" ./mgn_wpblock_copy.zip
 
       # mainからdevにPR生成
       - name: Create pull request to dev
