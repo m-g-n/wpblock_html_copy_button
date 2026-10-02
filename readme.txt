@@ -1,10 +1,10 @@
 === mgn ブロックコピーボタン ===
 Contributors: mgn
 Tags: block, gutenberg, copy
-Requires at least: 5.9
+Requires at least: 6.4
 Tested up to: 7.0
-Requires PHP: 5.6
-Stable tag: 0.0.8
+Requires PHP: 8.1
+Stable tag: 0.0.9
 License: GPL2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 

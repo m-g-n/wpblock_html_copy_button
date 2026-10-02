@@ -1,5 +1,7 @@
 <?php
 /**
+ * テキストドメインの読み込み.
+ *
  * @package mgn_wpblock_copy
  * @author mgn
  * @license GPL-2.0+
@@ -7,14 +9,17 @@
 
 namespace Mgn\Wpblock_copy\App\Setup;
 
-class TextDomain{
+/**
+ * プラグインの翻訳ファイルを読み込む.
+ */
+class TextDomain {
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 		// 第3引数は WP_PLUGIN_DIR からの相対パスで指定する.
 		load_plugin_textdomain( MGN_WPBLOCK_COPY_TEXTDOMAIN, false, dirname( MGN_WPBLOCK_COPY_BASENAME ) . '/languages' );
-		add_filter( 'load_textdomain_mofile', [ $this, 'load_textdomain_mofile' ], 10, 2 );
+		add_filter( 'load_textdomain_mofile', array( $this, 'load_textdomain_mofile' ), 10, 2 );
 	}
 
 	/**

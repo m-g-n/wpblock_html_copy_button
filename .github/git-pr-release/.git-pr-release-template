@@ -3,6 +3,7 @@
 - [ ] {issue.NO}
 
 ## 確認内容
-- [ ] 本体のルートファイル（mgn_wpblock_copy.php）の Version は正しいか（前回リリースと同じ場合、main へマージしてもリリースされません）
+- [ ] 本体のルートファイル（mgn_wpblock_copy.php）の Version は正しいか（前回リリースと同じ場合、main へマージしてもリリースされません。readme.txt の Stable tag も同じ値にする）
+- [ ] README.md の変更履歴を追記したか
 - [ ] 変更内容を記載し、すべてチェックされたか
 - [ ] 「確認内容」は最後に消してください

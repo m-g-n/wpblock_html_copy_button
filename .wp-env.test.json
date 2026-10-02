@@ -1,0 +1,16 @@
+{
+  "core": "https://ja.wordpress.org/latest-ja.zip",
+  "phpVersion": "8.1",
+  "port": 8889,
+  "testsEnvironment": false,
+  "plugins": [],
+  "mappings": {
+    "wp-content/plugins/mgn_wpblock_copy": "."
+  },
+  "config": {
+    "WP_DEBUG": true
+  },
+  "lifecycleScripts": {
+    "afterStart": "wp-env run --config=.wp-env.test.json cli wp plugin activate mgn_wpblock_copy"
+  }
+}

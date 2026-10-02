@@ -25,7 +25,12 @@
     "build:postcss": "postcss dist/css --base ./dist/css -d dist/css",
     "build:js": "webpack",
     "watch": "run-s 'watch:css'",
-    "watch:css": "sass src/css:dist/css --no-error-css --no-source-map --watch | postcss dist/css --base ./dist/css -d dist/css --watch"
+    "watch:css": "sass src/css:dist/css --no-error-css --no-source-map --watch | postcss dist/css --base ./dist/css -d dist/css --watch",
+    "env:test": "wp-env --config=.wp-env.test.json",
+    "lint:php": "composer lint",
+    "test": "run-s test:php test:e2e",
+    "test:php": "wp-env run --config=.wp-env.test.json cli --env-cwd=wp-content/plugins/mgn_wpblock_copy vendor/bin/phpunit",
+    "test:e2e": "wp-scripts test-playwright"
   },
   "author": "mgn",
   "license": "GPL-2.0+",

@@ -2,10 +2,10 @@
 /**
  * Plugin name: mgn ブロックコピーボタン
  * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
- * Version: 0.0.8
+ * Version: 0.0.9
  * Tested up to: 7.0
- * Requires at least: 5.9
- * Requires PHP: 5.6
+ * Requires at least: 6.4
+ * Requires PHP: 8.1
  * Author: mgn Inc.,
  * Author URI: https://m-g-n.me/
  * License: GPL2 or later
@@ -24,18 +24,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * declaration constant.
+ * Declaration constant.
  */
-define( 'MGN_WPBLOCK_COPY_KEY', 'MGN_WPBLOCK_COPY' ); //このプラグインの識別キー（更新通知JSONのファイル名に使用）.
-define( 'MGN_WPBLOCK_COPY_URL', untrailingslashit( plugins_url( '', __FILE__ ) ) . '/' );  //このプラグインのURL.
-define( 'MGN_WPBLOCK_COPY_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/' ); //このプラグインのパス.
-define( 'MGN_WPBLOCK_COPY_BASENAME', plugin_basename( __FILE__ ) ); //このプラグインのベースネーム.
-define( 'MGN_WPBLOCK_COPY_TEXTDOMAIN', 'mgn_wpblock_copy' ); //テキストドメイン名.
+define( 'MGN_WPBLOCK_COPY_KEY', 'MGN_WPBLOCK_COPY' ); // このプラグインの識別キー（更新通知JSONのファイル名に使用）.
+define( 'MGN_WPBLOCK_COPY_URL', untrailingslashit( plugins_url( '', __FILE__ ) ) . '/' );  // このプラグインのURL.
+define( 'MGN_WPBLOCK_COPY_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/' ); // このプラグインのパス.
+define( 'MGN_WPBLOCK_COPY_BASENAME', plugin_basename( __FILE__ ) ); // このプラグインのベースネーム.
+define( 'MGN_WPBLOCK_COPY_TEXTDOMAIN', 'mgn_wpblock_copy' ); // テキストドメイン名.
 
 /**
- * include files.
+ * Include files.
  */
-require_once MGN_WPBLOCK_COPY_PATH . 'vendor/autoload.php'; //composer（アップデート用ライブラリ・App 配下のクラスを PSR-4 で読み込む）.
+require_once MGN_WPBLOCK_COPY_PATH . 'vendor/autoload.php'; // composer（アップデート用ライブラリ・App 配下のクラスを PSR-4 で読み込む）.
 
 /**
  * 初期設定.
@@ -45,17 +45,17 @@ class Bootstrap {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'plugins_loaded', [ $this, 'bootstrap' ] );
-		add_action( 'init', [ $this, 'load_textdomain' ] );
-		add_action( 'template_redirect', [ $this, 'check_allow_display_btn' ] );
+		add_action( 'plugins_loaded', array( $this, 'bootstrap' ) );
+		add_action( 'init', array( $this, 'load_textdomain' ) );
+		add_action( 'template_redirect', array( $this, 'check_allow_display_btn' ) );
 	}
 
 	/**
 	 * Bootstrap.
 	 */
 	public function bootstrap() {
-		new App\Setup\AutoUpdate(); //自動更新チェック.
-		new App\Setup\InPluginUpdateMessage(); //更新アラートメッセージに追加でメッセージを表示
+		new App\Setup\AutoUpdate(); // 自動更新チェック.
+		new App\Setup\InPluginUpdateMessage(); // 更新アラートメッセージに追加でメッセージを表示.
 	}
 
 	/**
@@ -66,7 +66,7 @@ class Bootstrap {
 	}
 
 	/**
-	 * ボタンを表示するかチェック,
+	 * ボタンを表示するかチェック.
 	 */
 	public function check_allow_display_btn() {
 		// 個別ページ（投稿・固定ページ等）以外では表示しない.
@@ -84,18 +84,19 @@ class Bootstrap {
 			return;
 		}
 
-		//todo オプションページの値を取得
+		// TODO: オプションページの値を取得する.
 		$view_type = 'param';
 
-		//オプションの設定内容によって表示するかの有無を判断.
-		if ( 'param' === $view_type ) { //パラメータ値で表示.
+		// オプションの設定内容によって表示するかの有無を判断.
+		if ( 'param' === $view_type ) { // パラメータ値で表示.
 			$param_name = 'mgn_wpblock_copy';
-			$param_val  = 'on'; //TODO：将来オプションページの値から取得
+			$param_val  = 'on'; // TODO: 将来オプションページの値から取得する.
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 表示切替のみで状態は変更しない.
-			if ( isset( $_GET[ $param_name ] ) && $param_val === sanitize_text_field( wp_unslash( $_GET[ $param_name ] ) ) ) { //パラメータがある
+			$param_input = isset( $_GET[ $param_name ] ) ? sanitize_text_field( wp_unslash( $_GET[ $param_name ] ) ) : '';
+			if ( $param_val === $param_input ) {
 				$this->display_btn( $post );
 			}
-		} elseif ( 'normal' === $view_type ) { //常時表示
+		} elseif ( 'normal' === $view_type ) { // 常時表示.
 			$this->display_btn( $post );
 		}
 	}
@@ -106,7 +107,7 @@ class Bootstrap {
 	 * @param \WP_Post $post コピー対象の投稿.
 	 */
 	public function display_btn( $post ) {
-		new App\Setup\Assets(); //ボタン用のCSS・JSの読み込み.
+		new App\Setup\Assets(); // ボタン用のCSS・JSの読み込み.
 		add_action(
 			'wp_enqueue_scripts',
 			function () use ( $post ) {
@@ -121,11 +122,11 @@ class Bootstrap {
 				wp_localize_script(
 					App\Setup\Assets::SCRIPT_HANDLE,
 					'mgnWpblockCopyL10n',
-					[
+					array(
 						'copy'   => __( 'このページのブロック内容をコピー', 'mgn_wpblock_copy' ),
 						'copied' => __( 'コピーしました！', 'mgn_wpblock_copy' ),
 						'failed' => __( 'コピーに失敗しました', 'mgn_wpblock_copy' ),
-					]
+					)
 				);
 			},
 			20 // Assets の enqueue（優先度10）より後に実行.
