@@ -20,7 +20,7 @@ jobs:
       - name: Get Version
         id: get_version
         run: |
-          version=$(.github/scripts/get-version.sh)
+          version=$(bash .github/scripts/get-version.sh)
           echo "Version=$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 

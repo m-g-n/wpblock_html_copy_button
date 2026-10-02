@@ -24,7 +24,7 @@ jobs:
       - name: Get Version
         id: version
         run: |
-          version=$(.github/scripts/get-version.sh)
+          version=$(bash .github/scripts/get-version.sh)
           echo "version=$version" >> "$GITHUB_OUTPUT"
           # --exit-code: 0=タグあり / 2=タグなし / それ以外=取得エラー
           rc=0
@@ -68,7 +68,7 @@ jobs:
       # release用のzip作成（配布に必要なファイルだけを含める）
       - name: Zip Release
         if: steps.version.outputs.skip == 'false'
-        run: .github/scripts/build-zip.sh mgn_wpblock_copy.zip
+        run: bash .github/scripts/build-zip.sh mgn_wpblock_copy.zip
 
       # release作成とzipファイルの添付
       - name: Create Release
