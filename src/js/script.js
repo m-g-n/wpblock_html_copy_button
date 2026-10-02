@@ -13,11 +13,10 @@
 		}
 
 		// footerがあればクラスを追加してボタンを配置、なければbodyに配置
+		// （固定表示のボタンでコンテンツが隠れないよう、配置先に下余白用のクラスを付与）
 		const footerArea = document.querySelector("footer");
 		const btnParent = footerArea || document.body;
-		if (footerArea) {
-			footerArea.classList.add("mpcb-footer");
-		}
+		btnParent.classList.add(footerArea ? "mpcb-footer" : "mpcb-no-footer");
 
 		//コピーボタンを生成 / ボタンを追加
 		const copyBtn = document.createElement("button");

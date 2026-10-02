@@ -16,14 +16,11 @@ jobs:
           fetch-depth: 0
 
       # プラグインのルートファイルのヘッダー（Version:）からバージョンを取得
+      # （形式検証と readme.txt の Stable tag との一致確認を含む）
       - name: Get Version
         id: get_version
         run: |
-          version=$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p' mgn_wpblock_copy.php | head -n 1 | tr -d '[:space:]')
-          if ! printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then
-            echo "::error file=mgn_wpblock_copy.php::Version ヘッダーからバージョンを取得できません: '$version'"
-            exit 1
-          fi
+          version=$(.github/scripts/get-version.sh)
           echo "Version=$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 

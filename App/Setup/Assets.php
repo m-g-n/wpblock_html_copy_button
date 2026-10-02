@@ -1,5 +1,7 @@
 <?php
 /**
+ * フロント用アセットの読み込み.
+ *
  * @package mgn_wpblock_copy
  * @author mgn
  * @license GPL-2.0+
@@ -7,6 +9,9 @@
 
 namespace Mgn\Wpblock_copy\App\Setup;
 
+/**
+ * コピーボタン用の CSS・JS を読み込む.
+ */
 class Assets {
 
 	/**
@@ -18,7 +23,7 @@ class Assets {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'wp_enqueue_scripts', [ $this, 'wp_enqueue_scripts' ] );
+		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 	}
 
 	/**
@@ -28,7 +33,7 @@ class Assets {
 		wp_enqueue_style(
 			MGN_WPBLOCK_COPY_BASENAME . '-style',
 			MGN_WPBLOCK_COPY_URL . 'dist/css/style.css',
-			[],
+			array(),
 			$this->get_file_version( 'dist/css/style.css' )
 		);
 		wp_enqueue_script(

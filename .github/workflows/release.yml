@@ -24,11 +24,7 @@ jobs:
       - name: Get Version
         id: version
         run: |
-          version=$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p' mgn_wpblock_copy.php | head -n 1 | tr -d '[:space:]')
-          if ! printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then
-            echo "::error file=mgn_wpblock_copy.php::Version ヘッダーからバージョンを取得できません: '$version'"
-            exit 1
-          fi
+          version=$(.github/scripts/get-version.sh)
           echo "version=$version" >> "$GITHUB_OUTPUT"
           # --exit-code: 0=タグあり / 2=タグなし / それ以外=取得エラー
           rc=0
@@ -62,23 +58,17 @@ jobs:
         if: steps.version.outputs.skip == 'false'
         run: npm run build
 
-      #composerの実施
+      #composerの実施（開発用パッケージは含めない）
       - name: Composer install
         if: steps.version.outputs.skip == 'false'
         uses: docker://composer:2
         with:
-          args: install
+          args: install --no-dev --optimize-autoloader --no-interaction --no-progress
 
-      # release用のzip作成 https://github.com/marketplace/actions/zip-release
+      # release用のzip作成（配布に必要なファイルだけを含める）
       - name: Zip Release
         if: steps.version.outputs.skip == 'false'
-        uses: TheDoctor0/zip-release@0.7.6
-        with:
-          filename: 'mgn_wpblock_copy.zip' # ファイル名
-          exclusions: '*.git* /*node_modules/* .editorconfig /*src/*scss/*' # 除外設定
-          directory: '.'
-          path: '.'
-          type: 'zip'
+        run: .github/scripts/build-zip.sh mgn_wpblock_copy.zip
 
       # release作成とzipファイルの添付
       - name: Create Release
