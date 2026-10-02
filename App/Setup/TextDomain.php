@@ -1,6 +1,6 @@
 <?php
 /**
- * @package ruijinen-skin-r002-lp
+ * @package mgn_wpblock_copy
  * @author mgn
  * @license GPL-2.0+
  */
@@ -12,7 +12,8 @@ class TextDomain{
 	 * Constructor.
 	 */
 	public function __construct() {
-		load_plugin_textdomain( MGN_WPBLOCK_COPY_TEXTDOMAIN, false, MGN_WPBLOCK_COPY_PATH . '/languages' );
+		// 第3引数は WP_PLUGIN_DIR からの相対パスで指定する.
+		load_plugin_textdomain( MGN_WPBLOCK_COPY_TEXTDOMAIN, false, dirname( MGN_WPBLOCK_COPY_BASENAME ) . '/languages' );
 		add_filter( 'load_textdomain_mofile', [ $this, 'load_textdomain_mofile' ], 10, 2 );
 	}
 
@@ -26,7 +27,7 @@ class TextDomain{
 	public function load_textdomain_mofile( $mofile, $domain ) {
 		if ( MGN_WPBLOCK_COPY_TEXTDOMAIN === $domain ) {
 			$mofilename   = basename( $mofile );
-			$local_mofile = MGN_WPBLOCK_COPY_PATH . '/languages/' . $mofilename;
+			$local_mofile = MGN_WPBLOCK_COPY_PATH . 'languages/' . $mofilename;
 			if ( file_exists( $local_mofile ) ) {
 				return $local_mofile;
 			}

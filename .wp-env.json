@@ -7,11 +7,7 @@
     "https://downloads.wordpress.org/plugin/duplicate-post.zip"
   ],
 	"port": 1071,
-  "env": {
-    "tests": {
-      "port": 1072
-    }
-  },
+  "testsEnvironment": false,
   "config": {
     "WP_DEBUG": true
   },

@@ -6,63 +6,73 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
-    #nodeのバージョン設定 参考 https://docs.github.com/ja/free-pro-team@latest/actions/guides/building-and-testing-nodejs
-    strategy:
-      matrix:
-        node-version: [18.x]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@master
+        uses: actions/checkout@v7
 
-      #yarnのキャッシュ https://qiita.com/motoy3d/items/ead1eb1eec311f159c9a
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v4
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+      # プラグインのルートファイルのヘッダー（Version:）からバージョンを取得し、
+      # 同じバージョンのタグが既にある（前回リリースから変わっていない）場合はリリースをスキップする
+      - name: Get Version
+        id: version
+        run: |
+          version=$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p' mgn_wpblock_copy.php | head -n 1 | tr -d '[:space:]')
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then
+            echo "::error file=mgn_wpblock_copy.php::Version ヘッダーからバージョンを取得できません: '$version'"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # --exit-code: 0=タグあり / 2=タグなし / それ以外=取得エラー
+          rc=0
+          git ls-remote --exit-code --tags origin "refs/tags/$version" > /dev/null || rc=$?
+          case "$rc" in
+            0)
+              echo "::notice::バージョン $version は既にリリース済みのため、リリース作業をスキップします"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              ;;
+            2)
+              echo "バージョン $version をリリースします"
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::タグ一覧の取得に失敗しました（exit $rc）"
+              exit 1
+              ;;
+          esac
 
-      #yarnでのscriptの実施
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      #nodeのセットアップとnpmキャッシュ
+      - name: Use Node.js
+        if: steps.version.outputs.skip == 'false'
+        uses: actions/setup-node@v7
         with:
-          node-version: '18'
+          node-version: '24'
+          cache: 'npm'
       - name: Install Dependencies
-        run: yarn install --prefer-offline
-      - name: yarn build
-        run: yarn build
+        if: steps.version.outputs.skip == 'false'
+        run: npm ci
+      - name: npm run build
+        if: steps.version.outputs.skip == 'false'
+        run: npm run build
 
       #composerの実施
       - name: Composer install
-        uses: docker://composer:1.9.1
+        if: steps.version.outputs.skip == 'false'
+        uses: docker://composer:2
         with:
           args: install
 
-      # release作成
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.event.pull_request.title }}
-          release_name: ${{ github.event.pull_request.title }}
-          body: ${{ github.event.pull_request.body }}
-          draft: false
-          prerelease: false
-
       # release用のzip作成 https://github.com/marketplace/actions/zip-release
       - name: Zip Release
-        uses: TheDoctor0/zip-release@0.4.1
+        if: steps.version.outputs.skip == 'false'
+        uses: TheDoctor0/zip-release@0.7.6
         with:
           filename: 'mgn_wpblock_copy.zip' # ファイル名
           exclusions: '*.git* /*node_modules/* .editorconfig /*src/*scss/*' # 除外設定
@@ -70,24 +80,30 @@ jobs:
           path: '.'
           type: 'zip'
 
-      # releaseにzipファイルを添付
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+      # release作成とzipファイルの添付
+      - name: Create Release
+        if: steps.version.outputs.skip == 'false'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./mgn_wpblock_copy.zip
-          asset_name: mgn_wpblock_copy.zip
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # タグ名・タイトルにはルートファイルのバージョン（形式検証済み）を使う
+          gh release create \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_VERSION" \
+            --notes "$RELEASE_BODY" \
+            -- "$RELEASE_VERSION" ./mgn_wpblock_copy.zip
 
       # mainからdevにPR生成
-      - name: create-pull-request
-        uses: repo-sync/pull-request@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          destination_branch: 'dev'
-          pr_title: "リリース残処理：mainの内容をdevへ反映"
-          pr_body: "Pulling main into dev"
-          pr_allow_empty: true
+      - name: Create pull request to dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "$(gh pr list --base dev --head main --state open --json number --jq '.[].number')" ]; then
+            echo "main -> dev のPRは既に存在するためスキップ"
+            exit 0
+          fi
+          gh pr create --base dev --head main \
+            --title "リリース残処理：mainの内容をdevへ反映" \
+            --body "Pulling main into dev"

@@ -10,6 +10,12 @@
 - composer install でパッケージをインストール
 
 # 変更履歴
+## 0.0.8
+- Nodeを14から24にアップグレード（バージョン管理をVoltaからmiseに変更）
+- Nodeパッケージを最新版にアップグレードし、脆弱性を解消
+- npm-run-allをnpm-run-all2に置き換え
+- パッケージマネージャーをnpmに統一し、GitHub Actionsを更新
+
 ## 0.0.7
 - github actionsのキャッシュをv2からv4にアップグレード
 

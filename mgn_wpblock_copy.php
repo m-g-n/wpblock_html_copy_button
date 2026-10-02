@@ -2,8 +2,8 @@
 /**
  * Plugin name: mgn ブロックコピーボタン
  * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
- * Version: 0.0.7
- * Tested up to: 5.9
+ * Version: 0.0.8
+ * Tested up to: 7.0
  * Requires at least: 5.9
  * Requires PHP: 5.6
  * Author: mgn Inc.,
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * declaration constant.
  */
-define( 'MGN_WPBLOCK_COPY_KEY', 'MGN_WPBLOCK_COPY' );  //このプラグインのURL.
+define( 'MGN_WPBLOCK_COPY_KEY', 'MGN_WPBLOCK_COPY' ); //このプラグインの識別キー（更新通知JSONのファイル名に使用）.
 define( 'MGN_WPBLOCK_COPY_URL', untrailingslashit( plugins_url( '', __FILE__ ) ) . '/' );  //このプラグインのURL.
 define( 'MGN_WPBLOCK_COPY_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/' ); //このプラグインのパス.
 define( 'MGN_WPBLOCK_COPY_BASENAME', plugin_basename( __FILE__ ) ); //このプラグインのベースネーム.
@@ -35,12 +35,7 @@ define( 'MGN_WPBLOCK_COPY_TEXTDOMAIN', 'mgn_wpblock_copy' ); //テキストド�
 /**
  * include files.
  */
-require_once(MGN_WPBLOCK_COPY_PATH . 'vendor/autoload.php'); //アップデート用composer.
-
-//各処理用のクラスを読み込む
-foreach (glob(MGN_WPBLOCK_COPY_PATH.'App/**/*.php') as $filename) {
-	require_once $filename;
-}
+require_once MGN_WPBLOCK_COPY_PATH . 'vendor/autoload.php'; //composer（アップデート用ライブラリ・App 配下のクラスを PSR-4 で読み込む）.
 
 /**
  * 初期設定.
@@ -52,7 +47,7 @@ class Bootstrap {
 	public function __construct() {
 		add_action( 'plugins_loaded', [ $this, 'bootstrap' ] );
 		add_action( 'init', [ $this, 'load_textdomain' ] );
-		add_action( 'pre_get_posts', [ $this, 'check_allow_display_btn' ]); //TODO：もっと適切なhook名があったら修正する
+		add_action( 'template_redirect', [ $this, 'check_allow_display_btn' ] );
 	}
 
 	/**
@@ -74,8 +69,18 @@ class Bootstrap {
 	 * ボタンを表示するかチェック,
 	 */
 	public function check_allow_display_btn() {
-		//例外処理.
-		if ( !is_page() && !is_single() && is_front_page() ){
+		// 個別ページ（投稿・固定ページ等）以外では表示しない.
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		$post = get_queried_object();
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
+		// 編集権限のないユーザー、およびパスワード未入力の保護ページには本文を出力しない.
+		if ( ! current_user_can( 'edit_post', $post->ID ) || post_password_required( $post ) ) {
 			return;
 		}
 
@@ -86,32 +91,44 @@ class Bootstrap {
 		if ( 'param' === $view_type ) { //パラメータ値で表示.
 			$param_name = 'mgn_wpblock_copy';
 			$param_val  = 'on'; //TODO：将来オプションページの値から取得
-			if ( isset($_GET[$param_name]) && $param_val === $_GET[$param_name] ) { //パラメータがある
-				$this->dislay_btn();
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 表示切替のみで状態は変更しない.
+			if ( isset( $_GET[ $param_name ] ) && $param_val === sanitize_text_field( wp_unslash( $_GET[ $param_name ] ) ) ) { //パラメータがある
+				$this->display_btn( $post );
 			}
 		} elseif ( 'normal' === $view_type ) { //常時表示
-			$this->dislay_btn();
-		} else {
-			return;
+			$this->display_btn( $post );
 		}
 	}
 
 	/**
 	 * ボタンを表示.
+	 *
+	 * @param \WP_Post $post コピー対象の投稿.
 	 */
-	public function dislay_btn(){
+	public function display_btn( $post ) {
 		new App\Setup\Assets(); //ボタン用のCSS・JSの読み込み.
 		add_action(
-			'wp_footer',
-			function(){
-				global $post;
-				$contents = $post->post_content;
-				?>
-				<script>
-					const copyContents = `<?php echo $contents; ?>`;
-				</script>
-				<?php
-			}
+			'wp_enqueue_scripts',
+			function () use ( $post ) {
+				// JSON としてエンコードし、スクリプト内に安全に埋め込む（< > & ' " もエスケープ）.
+				$contents = wp_json_encode( $post->post_content, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
+				wp_add_inline_script(
+					App\Setup\Assets::SCRIPT_HANDLE,
+					'const copyContents = ' . $contents . ';',
+					'before'
+				);
+				// ボタン文言（翻訳対象）.
+				wp_localize_script(
+					App\Setup\Assets::SCRIPT_HANDLE,
+					'mgnWpblockCopyL10n',
+					[
+						'copy'   => __( 'このページのブロック内容をコピー', 'mgn_wpblock_copy' ),
+						'copied' => __( 'コピーしました！', 'mgn_wpblock_copy' ),
+						'failed' => __( 'コピーに失敗しました', 'mgn_wpblock_copy' ),
+					]
+				);
+			},
+			20 // Assets の enqueue（優先度10）より後に実行.
 		);
 	}
 }
