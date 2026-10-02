@@ -1,9 +1,15 @@
 <%= ENV['PKG_VERSION'] %>
 ## 変更内容
-- [ ] {issue.NO}
+<% changes = pull_requests.reject { |pr| pr.head.ref == 'main' } -%>
+<% if changes.empty? -%>
+- （dev にマージされた PR はありません）
+<% end -%>
+<% changes.each do |pr| -%>
+- #<%= pr.number %> <%= pr.title %><%= pr.user ? " by @#{pr.user.login}" : '' %>
+<% end -%>
 
+<!-- release-notes-end: この行より下はリリースノートに含まれません -->
 ## 確認内容
-- [ ] 本体のルートファイル（mgn_wpblock_copy.php）の Version は正しいか（前回リリースと同じ場合、main へマージしてもリリースされません。readme.txt の Stable tag も同じ値にする）
+<!-- バージョン形式・readme.txt の Stable tag との一致・Lint・テストは CI で自動チェックしています -->
+- [ ] mgn_wpblock_copy.php の Version が今回リリースするバージョンになっているか（前回と同じ場合、main にマージしてもリリースされません）
 - [ ] README.md の変更履歴を追記したか
-- [ ] 変更内容を記載し、すべてチェックされたか
-- [ ] 「確認内容」は最後に消してください
