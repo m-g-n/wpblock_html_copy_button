@@ -21,6 +21,11 @@ dist/js/
 /.export/wp-content/
 /.export/sql/
 
+## テスト（Playwright の成果物・リリース zip）
+/artifacts/
+/mgn_wpblock_copy.zip
+.phpunit.result.cache
+
 ## Backstop JS
 backstop_data/bitmaps_reference/
 backstop_data/bitmaps_test/

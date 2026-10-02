@@ -1,5 +1,7 @@
 <?php
 /**
+ * GitHub リリースを使った自動更新.
+ *
  * @package mgn_wpblock_copy
  * @author mgn
  * @license GPL-2.0+
@@ -9,7 +11,10 @@ namespace Mgn\Wpblock_copy\App\Setup;
 
 use Inc2734\WP_GitHub_Plugin_Updater\Bootstrap as Updater;
 
-class AutoUpdate{
+/**
+ * GitHub のリリースからプラグインを自動更新する.
+ */
+class AutoUpdate {
 
 	/**
 	 * Constructor.
@@ -19,7 +24,7 @@ class AutoUpdate{
 	}
 
 	/**
-	 * Activate auto update using GitHub,
+	 * Activate auto update using GitHub.
 	 *
 	 * @return void
 	 */
@@ -28,23 +33,11 @@ class AutoUpdate{
 			MGN_WPBLOCK_COPY_BASENAME,
 			'm-g-n',
 			'wpblock_html_copy_button',
-			[
-				// 'description_url'  => 'https://m-g-n,me',
-				// 'faq_url'          => 'https://m-g-n,me',
-				// 'changelog_url'    => 'https://m-g-n,me',
-				// 'icons' => [
-				// 	// 'svg' => '', // svg URL. Square recommended
-				// 	'1x'  => 'https://rui-jin-en.com/wp-content/uploads/2022/02/icon-64x64-1.png', // Image URL 64×64
-				// 	'2x'  => 'https://rui-jin-en.com/wp-content/uploads/2022/02/icon-128x128-1.png', // Image URL 128×128
-				// ],
-				// 'banners' => [
-				// 	'low'  => '', // Image URL 772×250
-				// 	'high' => '', // Image URL 1554×500
-				// ],
-				'tested'       => '7.0', // Tested up WordPress version
-				'requires_php' => '5.6.0', // Requires PHP version
-				'requires'     => '5.9', // Requires WordPress version
-			]
+			array(
+				'tested'       => '7.0', // Tested up WordPress version.
+				'requires_php' => '8.1', // Requires PHP version.
+				'requires'     => '6.4', // Requires WordPress version.
+			)
 		);
 	}
 }

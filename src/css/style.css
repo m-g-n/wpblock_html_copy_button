@@ -16,6 +16,7 @@
 	position: fixed;
 	right: 200%;
 }
-footer.mpcb-footer{
+footer.mpcb-footer,
+body.mpcb-no-footer{
 	padding-bottom: 45px;
 }

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<ruleset name="mgn_wpblock_copy">
+	<description>mgn ブロックコピーボタンのコーディング規約（WordPress Coding Standards）</description>
+
+	<file>mgn_wpblock_copy.php</file>
+	<file>App</file>
+	<file>tests/phpunit</file>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
+	<!-- 動作環境の下限 -->
+	<config name="testVersion" value="8.1-"/>
+	<config name="minimum_wp_version" value="6.4"/>
+
+	<rule ref="WordPress">
+		<!-- App 配下は composer の PSR-4 で読み込むため、ファイル名はクラス名に合わせる -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="mgn_wpblock_copy"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="mgn_wpblock_copy"/>
+				<element value="Mgn\Wpblock_copy"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- テストコードはクラス・メソッド名を PHPUnit の慣習に合わせる -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+</ruleset>
