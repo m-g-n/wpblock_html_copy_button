@@ -10,6 +10,11 @@ namespace Mgn\Wpblock_copy\App\Setup;
 class Assets {
 
 	/**
+	 * フロント用スクリプトのハンドル名.
+	 */
+	const SCRIPT_HANDLE = MGN_WPBLOCK_COPY_BASENAME . '-script';
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -27,7 +32,7 @@ class Assets {
 			filemtime( MGN_WPBLOCK_COPY_PATH . '/dist/css/style.css' )
 		);
 		wp_enqueue_script(
-			MGN_WPBLOCK_COPY_BASENAME.'-script',
+			self::SCRIPT_HANDLE,
 			MGN_WPBLOCK_COPY_URL . '/dist/js/script.js',
 			array(),
 			filemtime( MGN_WPBLOCK_COPY_PATH . '/dist/js/script.js' ),

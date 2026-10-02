@@ -52,7 +52,7 @@ class Bootstrap {
 	public function __construct() {
 		add_action( 'plugins_loaded', [ $this, 'bootstrap' ] );
 		add_action( 'init', [ $this, 'load_textdomain' ] );
-		add_action( 'pre_get_posts', [ $this, 'check_allow_display_btn' ]); //TODO：もっと適切なhook名があったら修正する
+		add_action( 'template_redirect', [ $this, 'check_allow_display_btn' ] );
 	}
 
 	/**
@@ -74,8 +74,18 @@ class Bootstrap {
 	 * ボタンを表示するかチェック,
 	 */
 	public function check_allow_display_btn() {
-		//例外処理.
-		if ( !is_page() && !is_single() && is_front_page() ){
+		// 個別ページ（投稿・固定ページ等）以外では表示しない.
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		$post = get_queried_object();
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
+		// 編集権限のないユーザー、およびパスワード未入力の保護ページには本文を出力しない.
+		if ( ! current_user_can( 'edit_post', $post->ID ) || post_password_required( $post ) ) {
 			return;
 		}
 
@@ -86,32 +96,34 @@ class Bootstrap {
 		if ( 'param' === $view_type ) { //パラメータ値で表示.
 			$param_name = 'mgn_wpblock_copy';
 			$param_val  = 'on'; //TODO：将来オプションページの値から取得
-			if ( isset($_GET[$param_name]) && $param_val === $_GET[$param_name] ) { //パラメータがある
-				$this->dislay_btn();
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 表示切替のみで状態は変更しない.
+			if ( isset( $_GET[ $param_name ] ) && $param_val === sanitize_text_field( wp_unslash( $_GET[ $param_name ] ) ) ) { //パラメータがある
+				$this->dislay_btn( $post );
 			}
 		} elseif ( 'normal' === $view_type ) { //常時表示
-			$this->dislay_btn();
-		} else {
-			return;
+			$this->dislay_btn( $post );
 		}
 	}
 
 	/**
 	 * ボタンを表示.
+	 *
+	 * @param \WP_Post $post コピー対象の投稿.
 	 */
-	public function dislay_btn(){
+	public function dislay_btn( $post ) {
 		new App\Setup\Assets(); //ボタン用のCSS・JSの読み込み.
 		add_action(
-			'wp_footer',
-			function(){
-				global $post;
-				$contents = $post->post_content;
-				?>
-				<script>
-					const copyContents = `<?php echo $contents; ?>`;
-				</script>
-				<?php
-			}
+			'wp_enqueue_scripts',
+			function () use ( $post ) {
+				// JSON としてエンコードし、スクリプト内に安全に埋め込む（< > & ' " もエスケープ）.
+				$contents = wp_json_encode( $post->post_content, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
+				wp_add_inline_script(
+					App\Setup\Assets::SCRIPT_HANDLE,
+					'const copyContents = ' . $contents . ';',
+					'before'
+				);
+			},
+			20 // Assets の enqueue（優先度10）より後に実行.
 		);
 	}
 }
