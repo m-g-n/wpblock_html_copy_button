@@ -1,6 +1,6 @@
 <?php
 /**
- * @package ruijinen-skin-r002-lp
+ * @package mgn_wpblock_copy
  * @author mgn
  * @license GPL-2.0+
  */
@@ -41,7 +41,7 @@ class AutoUpdate{
 				// 	'low'  => '', // Image URL 772×250
 				// 	'high' => '', // Image URL 1554×500
 				// ],
-				'tested'       => '5.9', // Tested up WordPress version
+				'tested'       => '7.0', // Tested up WordPress version
 				'requires_php' => '5.6.0', // Requires PHP version
 				'requires'     => '5.9', // Requires WordPress version
 			]

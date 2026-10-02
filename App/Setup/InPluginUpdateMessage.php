@@ -1,6 +1,6 @@
 <?php
 /**
- * @package ruijinen-r001-corp
+ * @package mgn_wpblock_copy
  * @author mgn
  * @license GPL-2.0+
  */

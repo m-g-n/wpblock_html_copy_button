@@ -3,7 +3,7 @@
  * Plugin name: mgn ブロックコピーボタン
  * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
  * Version: 0.0.8
- * Tested up to: 5.9
+ * Tested up to: 7.0
  * Requires at least: 5.9
  * Requires PHP: 5.6
  * Author: mgn Inc.,
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * declaration constant.
  */
-define( 'MGN_WPBLOCK_COPY_KEY', 'MGN_WPBLOCK_COPY' );  //このプラグインのURL.
+define( 'MGN_WPBLOCK_COPY_KEY', 'MGN_WPBLOCK_COPY' ); //このプラグインの識別キー（更新通知JSONのファイル名に使用）.
 define( 'MGN_WPBLOCK_COPY_URL', untrailingslashit( plugins_url( '', __FILE__ ) ) . '/' );  //このプラグインのURL.
 define( 'MGN_WPBLOCK_COPY_PATH', untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/' ); //このプラグインのパス.
 define( 'MGN_WPBLOCK_COPY_BASENAME', plugin_basename( __FILE__ ) ); //このプラグインのベースネーム.
@@ -35,12 +35,7 @@ define( 'MGN_WPBLOCK_COPY_TEXTDOMAIN', 'mgn_wpblock_copy' ); //テキストド�
 /**
  * include files.
  */
-require_once(MGN_WPBLOCK_COPY_PATH . 'vendor/autoload.php'); //アップデート用composer.
-
-//各処理用のクラスを読み込む
-foreach (glob(MGN_WPBLOCK_COPY_PATH.'App/**/*.php') as $filename) {
-	require_once $filename;
-}
+require_once MGN_WPBLOCK_COPY_PATH . 'vendor/autoload.php'; //composer（アップデート用ライブラリ・App 配下のクラスを PSR-4 で読み込む）.
 
 /**
  * 初期設定.
@@ -98,10 +93,10 @@ class Bootstrap {
 			$param_val  = 'on'; //TODO：将来オプションページの値から取得
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 表示切替のみで状態は変更しない.
 			if ( isset( $_GET[ $param_name ] ) && $param_val === sanitize_text_field( wp_unslash( $_GET[ $param_name ] ) ) ) { //パラメータがある
-				$this->dislay_btn( $post );
+				$this->display_btn( $post );
 			}
 		} elseif ( 'normal' === $view_type ) { //常時表示
-			$this->dislay_btn( $post );
+			$this->display_btn( $post );
 		}
 	}
 
@@ -110,7 +105,7 @@ class Bootstrap {
 	 *
 	 * @param \WP_Post $post コピー対象の投稿.
 	 */
-	public function dislay_btn( $post ) {
+	public function display_btn( $post ) {
 		new App\Setup\Assets(); //ボタン用のCSS・JSの読み込み.
 		add_action(
 			'wp_enqueue_scripts',
@@ -121,6 +116,16 @@ class Bootstrap {
 					App\Setup\Assets::SCRIPT_HANDLE,
 					'const copyContents = ' . $contents . ';',
 					'before'
+				);
+				// ボタン文言（翻訳対象）.
+				wp_localize_script(
+					App\Setup\Assets::SCRIPT_HANDLE,
+					'mgnWpblockCopyL10n',
+					[
+						'copy'   => __( 'このページのブロック内容をコピー', 'mgn_wpblock_copy' ),
+						'copied' => __( 'コピーしました！', 'mgn_wpblock_copy' ),
+						'failed' => __( 'コピーに失敗しました', 'mgn_wpblock_copy' ),
+					]
 				);
 			},
 			20 // Assets の enqueue（優先度10）より後に実行.
