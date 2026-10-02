@@ -19,25 +19,59 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
+      # プラグインのルートファイルのヘッダー（Version:）からバージョンを取得し、
+      # 同じバージョンのタグが既にある（前回リリースから変わっていない）場合はリリースをスキップする
+      - name: Get Version
+        id: version
+        run: |
+          version=$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p' mgn_wpblock_copy.php | head -n 1 | tr -d '[:space:]')
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then
+            echo "::error file=mgn_wpblock_copy.php::Version ヘッダーからバージョンを取得できません: '$version'"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # --exit-code: 0=タグあり / 2=タグなし / それ以外=取得エラー
+          rc=0
+          git ls-remote --exit-code --tags origin "refs/tags/$version" > /dev/null || rc=$?
+          case "$rc" in
+            0)
+              echo "::notice::バージョン $version は既にリリース済みのため、リリース作業をスキップします"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              ;;
+            2)
+              echo "バージョン $version をリリースします"
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::タグ一覧の取得に失敗しました（exit $rc）"
+              exit 1
+              ;;
+          esac
+
       #nodeのセットアップとnpmキャッシュ
       - name: Use Node.js
+        if: steps.version.outputs.skip == 'false'
         uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: 'npm'
       - name: Install Dependencies
+        if: steps.version.outputs.skip == 'false'
         run: npm ci
       - name: npm run build
+        if: steps.version.outputs.skip == 'false'
         run: npm run build
 
       #composerの実施
       - name: Composer install
+        if: steps.version.outputs.skip == 'false'
         uses: docker://composer:2
         with:
           args: install
 
       # release用のzip作成 https://github.com/marketplace/actions/zip-release
       - name: Zip Release
+        if: steps.version.outputs.skip == 'false'
         uses: TheDoctor0/zip-release@0.7.6
         with:
           filename: 'mgn_wpblock_copy.zip' # ファイル名
@@ -48,21 +82,18 @@ jobs:
 
       # release作成とzipファイルの添付
       - name: Create Release
+        if: steps.version.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TITLE: ${{ github.event.pull_request.title }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
           RELEASE_BODY: ${{ github.event.pull_request.body }}
         run: |
-          # PRタイトルをタグ名に使うため、バージョン形式以外は拒否する
-          if ! printf '%s' "$RELEASE_TITLE" | grep -Eq '^v?[0-9]+(\.[0-9]+)*$'; then
-            echo "::error::PRタイトルがバージョン形式ではありません: $RELEASE_TITLE"
-            exit 1
-          fi
+          # タグ名・タイトルにはルートファイルのバージョン（形式検証済み）を使う
           gh release create \
             --target "$GITHUB_SHA" \
-            --title "$RELEASE_TITLE" \
+            --title "$RELEASE_VERSION" \
             --notes "$RELEASE_BODY" \
-            -- "$RELEASE_TITLE" ./mgn_wpblock_copy.zip
+            -- "$RELEASE_VERSION" ./mgn_wpblock_copy.zip
 
       # mainからdevにPR生成
       - name: Create pull request to dev
