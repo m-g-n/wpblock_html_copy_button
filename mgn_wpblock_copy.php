@@ -2,7 +2,7 @@
 /**
  * Plugin name: mgn ブロックコピーボタン
  * Description: フロント表示の際にそのページのブロック構造をコピーできるボタンを設置
- * Version: 0.0.9
+ * Version: 0.0.10
  * Tested up to: 7.0
  * Requires at least: 6.4
  * Requires PHP: 8.1
