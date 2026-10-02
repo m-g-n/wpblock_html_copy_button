@@ -24,7 +24,7 @@ jobs:
       - name: Get Version
         id: version
         run: |
-          version=$(.github/scripts/get-version.sh)
+          version=$(bash .github/scripts/get-version.sh)
           echo "version=$version" >> "$GITHUB_OUTPUT"
           # --exit-code: 0=タグあり / 2=タグなし / それ以外=取得エラー
           rc=0
@@ -68,7 +68,7 @@ jobs:
       # release用のzip作成（配布に必要なファイルだけを含める）
       - name: Zip Release
         if: steps.version.outputs.skip == 'false'
-        run: .github/scripts/build-zip.sh mgn_wpblock_copy.zip
+        run: bash .github/scripts/build-zip.sh mgn_wpblock_copy.zip
 
       # release作成とzipファイルの添付
       - name: Create Release
@@ -78,11 +78,13 @@ jobs:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           RELEASE_BODY: ${{ github.event.pull_request.body }}
         run: |
+          # リリース PR 本文のうち、確認内容（release-notes-end マーカー以降）はリリースノートに含めない
+          notes=$(printf '%s\n' "$RELEASE_BODY" | sed '/<!-- release-notes-end/,$d')
           # タグ名・タイトルにはルートファイルのバージョン（形式検証済み）を使う
           gh release create \
             --target "$GITHUB_SHA" \
             --title "$RELEASE_VERSION" \
-            --notes "$RELEASE_BODY" \
+            --notes "$notes" \
             -- "$RELEASE_VERSION" ./mgn_wpblock_copy.zip
 
       # mainからdevにPR生成
