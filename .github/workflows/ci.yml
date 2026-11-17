@@ -1,10 +1,12 @@
 name: CI
 
 on:
+  # main 向けのリリース PR（dev → main）は GitHub Actions が作成するため、
+  # pull_request で起動すると毎回承認待ちになる。中身は dev と同じコミットで、
+  # dev への push 時に CI 済みのため、PR の対象は dev のみとする。
   pull_request:
     branches:
       - dev
-      - main
   push:
     branches:
       - dev
